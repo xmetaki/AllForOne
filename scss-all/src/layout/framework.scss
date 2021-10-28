@@ -1,0 +1,69 @@
+@import './mixins.scss'; 
+$defaultMinWidth: 1024px;
+$defaultMinHeight: 800px;
+$defaultBgColor:#f3f4f9;
+$defaultWrapperColor: #ffffff;
+@mixin generateFramework($block,$minWidth:$defaultMinWidth, $minHeight:$defaultMinHeight) {
+    @include b($block) {
+        @include e(wrapper) {
+            width: 100%;
+            height: 100%;
+            background-color: $defaultBgColor;
+            padding: 5px 3px;
+            overflow: auto;
+            > * {
+                width: 99%;
+                height: 99%;
+                min-width: $minWidth;
+                min-height: $minHeight;
+                margin: 0px auto;
+                background-color: $defaultWrapperColor;
+                border-radius: 4px;
+
+            }
+        }
+    }
+}
+
+/**
+  * @author xmetaki
+  * @describe 三列布局生成器
+  */
+@mixin ThreeColumnLayoutGenerator($block,$headerHeight,$footerHeight,$minWidth:$defaultMinWidth, $minHeight:$defaultMinHeight) {
+    @include generateFramework($block,$minWidth,$minHeight);
+    @include b($rootblock) {
+        @include e(content) {
+            font-size: 12px;
+            display: flex;
+            flex-flow: column nowrap;
+            align-items: center;
+            > * {
+                width: 99%;
+            }
+        }
+        @if ($headerHeight > 0px) {
+            @include e(header) {
+                height: $headerHeight;
+                background-color: chocolate;
+                margin-top: 8px;
+            }
+        }
+        
+    
+        @include e(body) {
+            flex-grow: 1;
+            background-color: crimson;
+            margin: 4px 0px;
+        }
+        
+        @if ($footerHeight > 0px) {
+            @include e(footer) {
+                height: $footerHeight;
+                background-color: darkmagenta;
+                margin-bottom: 10px;
+                margin-top: 8px;
+            }
+        }
+        
+    }
+}

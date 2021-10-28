@@ -1,0 +1,106 @@
+$namespace: 'jy';   //前缀名
+$element-separator: '__';  //子元素连接符
+$modifier-separator: '--'; //块样式状态连接符
+$state-prefix: 'is-';   //状态前缀
+
+
+/* BEM
+ -------------------------- */
+ @mixin b($block) {
+    // $block 即为传递进来的元素 比如 button 拼接之后 ==>  el-button
+   //变量拼接形成对应格式的class；再使用!global将其提升为全局变量
+   $B: $namespace+'-'+$block !global; 
+     // 使用插值语法将$B这个选择器作为选择器使用 #{}
+   .#{$B} {
+     @content; //使用混合；大括号后定义的样式都会解析到这里
+   }
+ }
+ 
+ 
+ @mixin e($element) {
+   $E: $element !global;
+   $selector: &;
+   $currentSelector: "";
+ //@each内 其实就是变量拼接，通过__符连接父级选择器和传入的子元素，而传入的值可以单个，也可以是数组；
+   @each $unit in $element {
+     $currentSelector: #{$currentSelector + "." + $B + $element-separator + $unit + ","};
+   }
+ // hitAllSpecialNestRule 为自己自定义函数
+   @if hitAllSpecialNestRule($selector) {
+     @at-root {
+       #{$selector} {
+         #{$currentSelector} {
+           @content;
+         }
+       }
+     }
+   } @else {
+     @at-root {
+       #{$currentSelector} {
+         @content;
+       }
+     }
+   }
+ }
+ 
+ @mixin m($modifier) {
+   $selector: &;
+   $currentSelector: "";
+   @each $unit in $modifier {
+     $currentSelector: #{$currentSelector + & + $modifier-separator + $unit + ","};
+   }
+ 
+   @at-root {
+     #{$currentSelector} {
+       @content;
+     }
+   }
+ }
+
+/* BEM support Func
+ -------------------------- */
+ @function selectorToString($selector) {
+    $selector: inspect($selector);
+    $selector: str-slice($selector, 2, -2);
+    @return $selector;
+  }
+  //inspect(value) 使用inspect（value)使用inspect（ value）函数来生成一个对调试Map有用的输出字符串，因为Map无法转换为纯CSS。使用一个作为CSS函数的变量或参数的值将导致错误。
+  
+  //判断父级选择器是否包含'--'
+  //看看当前选择器是否存在$modifier-separator这个变量也就是"--";
+  @function containsModifier($selector) {
+    $selector: selectorToString($selector);
+  //str-slice(string,string, string,start-at, end−at:−1)从end-at:-1) 从 end−at:−1)从string 中截取子字符串，通过 start−at和start-at 和 start−at和end-at 设置始末位置，未指定结束索引值则默认截取到字符串末尾。
+    @if str-index($selector, $modifier-separator) {
+      @return true;
+    } @else {
+      @return false;
+    }
+  }
+  //判断 父级选择器是否包含'.is-'
+  //看看当前选择器是否存在$state-prefix这个变量也就是"is-";
+  @function containWhenFlag($selector) {
+    $selector: selectorToString($selector);
+  //str-index(string,string, string,substring) 返回一个下标，标示 substring在substring 在 substring在string 中的起始位置。没有找到的话，则返回 null 值。这里$string必须为字符串
+    @if str-index($selector, '.' + $state-prefix) {
+      @return true
+    } @else {
+      @return false
+    }
+  }
+  //判断 父级是否包含 ':'
+  //看看当前选择器是否存在"：";用于判断伪类和伪元素
+  @function containPseudoClass($selector) {
+    $selector: selectorToString($selector);
+  
+    @if str-index($selector, ':') {
+      @return true
+    } @else {
+      @return false
+    }
+  }
+  
+  @function hitAllSpecialNestRule($selector) {
+  
+    @return containsModifier($selector) or containWhenFlag($selector) or containPseudoClass($selector);
+  }
